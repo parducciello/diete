@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dieta Accessible - Elvira Longobardi (22 Maggio - 7 Luglio)</title>
+    <title>Dieta Accessibile - Elvira Longobardi (22 Maggio - 7 Luglio)</title>
     <style>
         /* Blocco totale della pagina per tenere fisse le barre */
         html, body {
@@ -32,15 +32,29 @@
         .settimana-nav { display: flex; justify-content: space-between; margin-bottom: 10px; }
         .btn-nav { padding: 10px; font-size: 15px; background-color: #3498db; color: white; border: none; border-radius: 5px; width: 48%; }
         
-        .giorni-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .giorni-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 8px; }
         @media(max-width: 600px) { .giorni-grid { grid-template-columns: repeat(4, 1fr); } }
         .btn-giorno { padding: 10px 2px; font-size: 14px; background-color: #2ecc71; color: white; border: none; border-radius: 5px; }
         .btn-giorno.attivo { background-color: #27ae60; font-weight: bold; border: 2px solid #1e7e34; }
         
-        /* AREA CENTRAL FLUIDA: Solo qui dentro scorre il testo del cibo */
+        /* Indicatore testuale del giorno corrente posizionato sotto i bottoni della griglia */
+        .indicatore-giorno-corrente {
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            color: #2c3e50;
+            background-color: #e8f4f8;
+            padding: 6px;
+            border-radius: 4px;
+            border: 1px solid #bce1f1;
+            margin-top: 2px;
+            margin-bottom: 2px;
+        }
+
+        /* AREA CENTRALE FLUIDA: Solo qui dentro scorre il testo del cibo */
         .area-centrale-scorrimento {
             position: absolute;
-            top: 155px; /* Spazio occupato dalla barra fissa superiore */
+            top: 190px; /* Incrementato lo spazio per ospitare il nuovo indicatore testuale */
             bottom: 115px; /* Spazio occupato dalla barra fissa inferiore */
             left: 0;
             right: 0;
@@ -103,7 +117,7 @@
 </head>
 <body>
 
-    <div class="info-versione" aria-hidden="true">Versione 13.0 (Annuncio contestuale dinamico dei Pasti in basso)</div>
+    <div class="info-versione" aria-hidden="true">Versione 14.0 (Aggiunto testo indicatore giorno sotto la griglia)</div>
 
     <div class="area-superiore-fissa">
         <h1>Dieta Personalizzata Elvira</h1>
@@ -123,6 +137,8 @@
             <button class="btn-giorno" onclick="mostraGiorno(5)">Sabato</button>
             <button class="btn-giorno" onclick="mostraGiorno(6)">Domenica</button>
         </nav>
+
+        <div id="testo-giorno-selezionato" class="indicatore-giorno-corrente" aria-live="polite">Giorno selezionato: Lunedì</div>
     </div>
 
     <div id="altoparlante-automatico" class="sr-only-focusable" tabindex="-1"></div>
@@ -235,7 +251,11 @@
             const datiGiorno = dieta[giornoCorrente];
             const contenitore = document.getElementById("contenuto-dieta");
             const altoparlante = document.getElementById("altoparlante-automatico");
+            const indicatoreVisivoGiorno = document.getElementById("testo-giorno-selezionato");
             
+            // Aggiorna la scritta visiva del giorno corrente sotto la griglia
+            indicatoreVisivoGiorno.textContent = "Giorno selezionato: " + datiGiorno.giorno;
+
             const bottoni = document.querySelectorAll('.btn-giorno');
             bottoni.forEach((b, i) => {
                 if(i === indice) {
@@ -269,15 +289,13 @@
             altoparlante.textContent = testoGiornataIntera;
             contenitore.innerHTML = htmlGruppiSingoli;
 
-            // AGGIORNAMENTO DINAMICO DEI PULSANTI IN BASSO (CONTESTUALI AL GIORNO)
+            // Aggiornamento dei pulsanti inferiori contestuali al giorno
             const nomiPastiChiave = ["colazione", "spuntino-mattina", "pranzo", "merenda", "cena"];
             nomiPastiChiave.forEach(p => {
                 const btnSalto = document.getElementById("btn-salto-" + p);
                 if(btnSalto) {
-                    // Crea l'etichetta vocale corretta ("Colazione di Venerdì", "Pranzo di Venerdì", ecc.)
                     let etichettaPasto = p.charAt(0).toUpperCase() + p.slice(1).replace("-", " ");
                     if(p === "spuntino-mattina") etichettaPasto = "Spuntino";
-                    
                     btnSalto.setAttribute("aria-label", `Vedi ${etichettaPasto} di ${datiGiorno.giorno}`);
                 }
             });
@@ -307,7 +325,7 @@
             }
         }
 
-        // AVVIO INTELLIGENTE: calcola il giorno reale di oggi
+        // Avvio intelligente basato sul giorno reale corrente
         giornoCorrente = calcolaGiornoAttuale();
         mostraGiorno(giornoCorrente);
     </script>
