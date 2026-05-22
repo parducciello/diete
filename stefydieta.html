@@ -28,9 +28,7 @@
             z-index: 1000;
         }
         h1 { text-align: center; color: #2c3e50; font-size: 20px; margin: 0 0 5px 0; }
-        .sottotitolo { text-align: center; color: #555; font-size: 14px; margin: 0 0 10px 0; }
-        .settimana-nav { display: flex; justify-content: space-between; margin-bottom: 10px; }
-        .btn-nav { padding: 8px; font-size: 14px; background-color: #3498db; color: white; border: none; border-radius: 5px; width: 48%; font-weight: bold; cursor: pointer; }
+        .sottotitolo { text-align: center; color: #555; font-size: 14px; margin: 0 0 12px 0; }
         
         /* Griglia flessibile dei giorni: si adatta su smartphone senza accavallarsi */
         .giorni-grid { 
@@ -76,16 +74,11 @@
 </head>
 <body>
 
-    <div class="info-versione">Versione 3.0 (Layout Dinamico - Anti Sovrapposizione)</div>
+    <div class="info-versione">Versione 5.0 (Inizio 22 Maggio Calibrato)</div>
 
     <div class="area-superiore-fissa">
         <h1>Dieta Personalizzata Stefania</h1>
-        <p class="sottotitolo">Percorso alimentare personalizzato</p>
-        
-        <nav class="settimana-nav">
-            <button class="btn-nav" id="btn-prec" onclick="cambiaGiorno(-1)">⬅️ Prec</button>
-            <button class="btn-nav" id="btn-succ" onclick="cambiaGiorno(1)">Succ ➡️</button>
-        </nav>
+        <p class="sottotitolo">Periodo: dal 22 Maggio al 7 Luglio</p>
 
         <nav class="giorni-grid">
             <button class="btn-giorno" onclick="mostraGiorno(0)">Lunedì</button>
@@ -104,7 +97,7 @@
     </div>
 
     <script>
-        // Database pulito della dieta di Stefania
+        // Database della dieta di Stefania dal PDF
         const dieta = [
             {
                 giorno: "Lunedì",
@@ -180,6 +173,7 @@
 
         let giornoCorrente = 0;
 
+        // Trova il giorno reale odierno (0 = Lunedì, 6 = Domenica)
         function calcolaGiornoAttuale() {
             const dataOggi = new Date();
             const jsDay = dataOggi.getDay(); 
@@ -196,6 +190,7 @@
             const contenitore = document.getElementById("contenuto-dieta");
             const areaScroll = document.getElementById("area-scroll");
             
+            // Aggiorna lo stato grafico dei pulsanti verdi
             const bottoni = document.querySelectorAll('.btn-giorno');
             bottoni.forEach((b, i) => {
                 if(i === indice) {
@@ -205,6 +200,7 @@
                 }
             });
 
+            // Ricostruisce la pagina inserendo prima il titolo e poi i blocchi cibo
             let htmlDati = `<h2 class="titolo-giorno-corrente">Menu di ${datiGiorno.giorno}</h2>`;
             
             for (const [pasto, alimenti] of Object.entries(datiGiorno.pasti)) {
@@ -222,11 +218,7 @@
             areaScroll.scrollTop = 0;
         }
 
-        function cambiaGiorno(direzione) {
-            giornoCorrente = (giornoCorrente + direzione + 7) % 7;
-            mostraGiorno(giornoCorrente);
-        }
-
+        // Avvio automatico posizionato sul giorno reale di oggi
         giornoCorrente = calcolaGiornoAttuale();
         mostraGiorno(giornoCorrente);
     </script>
