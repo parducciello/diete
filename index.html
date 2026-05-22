@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dieta Accessibile - Elvira Longobardi (22 Maggio - 7 Luxchio)</title>
+    <style>
+        /* Blocco totale della pagina per tenere fisse le barre */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            overflow: hidden; /* Impedisce lo scorrimento dell'intera pagina */
+        }
+
+        /* BARRA SUPERIORE FISSA: Titoli e Giorni rimangono inchiodati in alto */
+        .area-superiore-fissa {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: #f4f4f4;
+            padding: 10px 15px 5px 15px;
+            border-bottom: 2px solid #ccc;
+            z-index: 1000;
+        }
+        h1 { text-align: center; color: #2c3e50; font-size: 20px; margin: 0 0 5px 0; }
+        .sottotitolo { text-align: center; color: #555; font-size: 15px; margin: 0 0 10px 0; }
+        .settimana-nav { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .btn-nav { padding: 10px; font-size: 15px; background-color: #3498db; color: white; border: none; border-radius: 5px; width: 48%; }
+        
+        .giorni-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        @media(max-width: 600px) { .giorni-grid { grid-template-columns: repeat(4, 1fr); } }
+        .btn-giorno { padding: 10px 2px; font-size: 14px; background-color: #2ecc71; color: white; border: none; border-radius: 5px; }
+        .btn-giorno.attivo { background-color: #27ae60; font-weight: bold; border: 2px solid #1e7e34; }
+        
+        /* AREA CENTRALE FLUIDA: Solo qui dentro scorre il testo del cibo */
+        .area-centrale-scorrimento {
+            position: absolute;
+            top: 155px; /* Spazio occupato dalla barra fissa superiore */
+            bottom: 115px; /* Spazio occupato dalla barra fissa inferiore */
+            left: 0;
+            right: 0;
+            overflow-y: auto; /* Permette lo scorrimento solo al centro */
+            padding: 15px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Contenitori dei Pasti */
+        .pasto-box { background: white; padding: 15px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); outline: none; }
+        .pasto-box:focus { border: 2px solid #3498db; background-color: #e8f4f8; }
+        .pasto-titolo { color: #d35400; margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 5px; }
+        ul { padding-left: 20px; }
+        li { margin-bottom: 8px; font-size: 18px; }
+        
+        /* Info di controllo visiva nell'angolino */
+        .info-versione {
+            position: fixed; bottom: 120px; right: 10px; font-size: 10px; color: #aaa; font-style: italic; z-index: 1000;
+        }
+
+        /* Area nascosta alla vista ma accessibile al focus vocale di Android */
+        .sr-only-focusable {
+            position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+            overflow: hidden; clip: rect(0, 0, 0, 0); border: 0;
+        }
+
+        /* BARRA INFERIORE FISSA: I pulsanti dei gruppi rimangono inchiodati sul fondo */
+        .barra-bordo-pasti {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #2c3e50;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 10px;
+            box-shadow: 0 -3px 10px rgba(0,0,0,0.3);
+            z-index: 1000;
+            border-top: 2px solid #1a252f;
+        }
+        .riga-pulsanti {
+            display: flex;
+            justify-content: space-around;
+            gap: 6px;
+        }
+        .btn-bordo-salto {
+            flex: 1;
+            padding: 12px 2px;
+            font-size: 15px;
+            font-weight: bold;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .btn-bordo-salto:active { background-color: #2980b9; }
+    </style>
+</head>
+<body>
+
+    <div class="info-versione" aria-hidden="true">Versione 12.0 (Avvio su Giorno Corrente + Schermo Fisso + Altoparlante)</div>
+
+    <div class="area-superiore-fissa">
+        <h1>Dieta Personalizzata Elvira</h1>
+        <p class="sottotitolo" id="periodo-dieta">Periodo: dal 22 Maggio al 7 Luglio</p>
+        
+        <nav class="settimana-nav" aria-label="Navigazione rapida giorni">
+            <button class="btn-nav" id="btn-prec" onclick="cambiaGiorno(-1)">⬅️ Prec</button>
+            <button class="btn-nav" id="btn-succ" onclick="cambiaGiorno(1)">Succ ➡️</button>
+        </nav>
+
+        <nav class="giorni-grid" aria-label="Seleziona un giorno specifico">
+            <button class="btn-giorno" onclick="mostraGiorno(0)">Lunedì</button>
+            <button class="btn-giorno" onclick="mostraGiorno(1)">Martedì</button>
+            <button class="btn-giorno" onclick="mostraGiorno(2)">Mercoledì</button>
+            <button class="btn-giorno" onclick="mostraGiorno(3)">Giovedì</button>
+            <button class="btn-giorno" onclick="mostraGiorno(4)">Venerdì</button>
+            <button class="btn-giorno" onclick="mostraGiorno(5)">Sabato</button>
+            <button class="btn-giorno" onclick="mostraGiorno(6)">Domenica</button>
+        </nav>
+    </div>
+
+    <div id="altoparlante-automatico" class="sr-only-focusable" tabindex="-1"></div>
+
+    <div class="area-centrale-scorrimento">
+        <main id="contenuto-dieta">
+            </main>
+    </div>
+
+    <div class="barra-bordo-pasti" role="navigation" aria-label="Salto rapido pasti della giornata">
+        <div class="riga-pulsanti">
+            <button class="btn-bordo-salto" onclick="saltaAPasto('colazione')">Colazione</button>
+            <button class="btn-bordo-salto" onclick="saltaAPasto('spuntino-mattina')">Spuntino</button>
+            <button class="btn-bordo-salto" onclick="saltaAPasto('pranzo')">Pranzo</button>
+        </div>
+        <div class="riga-pulsanti">
+            <button class="btn-bordo-salto" onclick="saltaAPasto('merenda')">Merenda</button>
+            <button class="btn-bordo-salto" onclick="saltaAPasto('cena')">Cena</button>
+        </div>
+    </div>
+
+    <script>
+        const dieta = [
+            {
+                giorno: "Lunedì",
+                pasti: {
+                    "Colazione": ["Latte zymil 200 grammi", "Cereali media 70 grammi"],
+                    "Spuntino Mattina": ["Frutta fresca media 150 grammi"],
+                    "Pranzo": ["Pasta integrale 100 grammi", "Legumi passati o frullati peso secco 50 grammi", "Olio di oliva extravergine 10 grammi", "Frutta fresca media 150 grammi"],
+                    "Merenda": ["Yogurt greco 0% fruyo 170 grammi", "Mandorle dolci secche 30 grammi"],
+                    "Cena": ["Pollo petto 150 grammi", "Verdure media 200 grammi", "Olio di oliva extravergine 10 grammi", "Pane integrale 50 grammi"]
+                }
+            },
+            {
+                giorno: "Martedì",
+                pasti: {
+                    "Colazione": ["Latte zymil 200 grammi", "Bastoncini di crusca di frumento Kellogg 50 grammi", "Cioccolato fondente con più dell'85% di cacao 20 grammi"],
+                    "Spuntino Mattina": ["Frutta fresca media 150 grammi"],
+                    "Pranzo": ["Pasta integrale 100 grammi", "Verdure media 200 grammi", "Olio di oliva extravergine 10 grammi", "Frutta fresca media 150 grammi"],
+                    "Merenda": ["Barrette di cereali 20 grammi", "Tisana in tazza 200 grammi"],
+                    "Cena": ["Pesce media 150 grammi", "Verdure media 200 grammi", "Olio di oliva extravergine 10 grammi", "Pane integrale 50 grammi"]
+                }
+            },
+            {
+                giorno: "Mercoledì",
+                pasti: {
+                    "Colazione": ["Latte zymil 200 grammi", "Cereali media 70 grammi"],
+                    "Spuntino Mattina": ["Frutta fresca media 150 grammi"],
+                    "Pranzo": ["Riso media 100 grammi", "Verdure media 200 grammi", "Olio di oliva extravergine 10 grammi", "Tonno al naturale in salamoia 80 grammi", "Frutta fresca media 150 grammi"],
+                    "Merenda": ["Yogurt greco 0% fruyo 170 grammi", "Mandorle dolci secche 30 grammi"],
+                    "Cena": ["Ricotta di vacca 100 grammi", "Verdure media 200 grammi", "Olio di oliva extravergine 10 grammi", "Frisella 50 grammi"]
+                }
+            },
+            {
+                giorno: "Giovedì",
+                pasti: {
+                    "Colazione": ["Latte zymil 200 grammi", "Bastoncini di crusca di frumento Kellogg 50 grammi", "Cioccolato fondente con più dell'85% di cacao 20 grammi"],
+                    "Spuntino Mattina": ["Frutta fresca media 150 grammi"],
+                    "Pranzo": ["Pasta integrale 100 grammi", "Verdure media 200 grammi", "Olio di oliva extravergine 10 grammi", "Grana 30 grammi", "Frutta fresca media 150 grammi"],
+                    "Merenda": ["Barrette di cereali 20 grammi", "Tisana in tazza 200 grammi"],
+                    "Cena": ["Uovo di gallina intero 120 grammi", "Verdure media 200 grammi", "Olio di oliva extravergine 10 grammi", "Pane integrale 50 grammi"]
+                }
+            },
+            {
+                giorno: "Venerdì",
+                pasti: {
+                    "Colazione": ["Latte zymil 200 grammi", "Cereali media 70 grammi"],
+                    "Spuntino Mattina": ["Frutta fresca media 150 grammi"],
+                    "Pranzo": ["Pasta integrale 100 grammi", "Legumi passati o frullati peso secco 50 grammi", "Olio di oliva extravergine 10 grammi", "Frutta fresca media 150 grammi"],
+                    "Merenda": ["Yogurt greco 0% fruyo 170 grammi", "Mandorle dolci secche 30 grammi"],
+                    "Cena": ["Hamburger 100 grammi", "Verdure media 200 grammi", "Olio di oliva extravergine 10 grammi", "Pane integrale 50 grammi"]
+                }
+            },
+            {
+                giorno: "Sabato",
+                pasti: {
+                    "Colazione": ["Latte zymil 200 grammi", "Frollini BuoniCosì Galbusera 50 grammi"],
+                    "Spuntino Mattina": ["Frutta fresca media 150 grammi"],
+                    "Pranzo": ["Riso media 100 grammi", "Verdure media 200 grammi", "Olio di oliva extravergine 10 grammi", "Pesce media 100 grammi", "Frutta fresca media 150 grammi"],
+                    "Merenda": ["Barrette di cereali 20 grammi", "Tisana in tazza 200 grammi"],
+                    "Cena": ["Pizza media 250 grammi"]
+                }
+            },
+            {
+                giorno: "Domenica",
+                pasti: {
+                    "Colazione": ["Latte zymil 200 grammi", "Frollini BuoniCosì Galbusera 50 grammi"],
+                    "Spuntino Mattina": ["Frutta fresca media 150 grammi"],
+                    "Pranzo": ["Pasta media 100 grammi", "Condimento libero 50 grammi", "Olio di oliva extravergine 10 grammi", "Parmigiano grattugiato 10 grammi"],
+                    "Merenda": ["Dolci vari media 1 grammo"],
+                    "Cena": ["Verdure media 200 grammi", "Olio di oliva extravergine 10 grammi", "Frisella 50 grammi", "Mozzarella di vacca 80 grammi"]
+                }
+            }
+        ];
+
+        let giornoCorrente = 0;
+
+        // FUNZIONE INTELLIGENTE: Riconosce che giorno è oggi nel mondo reale
+        function calcolaGiornoAttuale() {
+            const dataOggi = new Date();
+            const jsDay = dataOggi.getDay(); // 0 = Domenica, 1 = Lunedì, ecc.
+            let mioIndice = jsDay - 1;       // Adattiamo ai nostri indici (0 = Lunedì, 6 = Domenica)
+            if (mioIndice === -1) { 
+                mioIndice = 6; 
+            }
+            return mioIndice;
+        }
+
+        function mostraGiorno(indice) {
+            giornoCorrente = indice;
+            const datiGiorno = dieta[giornoCorrente];
+            const contenitore = document.getElementById("contenuto-dieta");
+            const altoparlante = document.getElementById("altoparlante-automatico");
+            
+            const bottoni = document.querySelectorAll('.btn-giorno');
+            bottoni.forEach((b, i) => {
+                if(i === indice) {
+                    b.classList.add('attivo');
+                    b.setAttribute('aria-current', 'date');
+                } else {
+                    b.classList.remove('attivo');
+                    b.removeAttribute('aria-current');
+                }
+            });
+
+            let testoGiornataIntera = "Menu di " + datiGiorno.giorno + ". ";
+            let htmlGruppiSingoli = `<h2>Menu di ${datiGiorno.giorno}</h2>`;
+            
+            for (const [pasto, alimenti] of Object.entries(datiGiorno.pasti)) {
+                const testoSingoloPasto = pasto + ": " + alimenti.join(", ") + ". ";
+                testoGiornataIntera += testoSingoloPasto;
+                
+                const idGruppoFissato = "id-" + pasto.toLowerCase().replace(" ", "-");
+                
+                htmlGruppiSingoli += `
+                    <div class="pasto-box" id="${idGruppoFissato}" tabindex="0" role="text" aria-label="${testoSingoloPasto}">
+                        <h3 class="pasto-titolo" aria-hidden="true">${pasto}</h3>
+                        <ul aria-hidden="true">
+                            ${alimenti.map(alimento => `<li>${alimento}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            altoparlante.textContent = testoGiornataIntera;
+            contenitore.innerHTML = htmlGruppiSingoli;
+
+            setTimeout(() => {
+                altoparlante.focus();
+            }, 150);
+
+            const precIdx = (giornoCorrente - 1 + 7) % 7;
+            const succIdx = (giornoCorrente + 1) % 7;
+            document.getElementById("btn-prec").setAttribute("aria-label", "Vai a " + dieta[precIdx].giorno);
+            document.getElementById("btn-succ").setAttribute("aria-label", "Vai a " + dieta[succIdx].giorno);
+        }
+
+        function cambiaGiorno(direzione) {
+            giornoCorrente = (giornoCorrente + direzione + 7) % 7;
+            mostraGiorno(giornoCorrente);
+        }
+
+        function saltaAPasto(nomePasto) {
+            const elemento = document.getElementById("id-" + nomePasto);
+            if (elemento) {
+                elemento.focus();
+                if (typeof elemento.scrollIntoView === "function") {
+                    elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        }
+
+        // AVVIO INTELLIGENTE: invece di partire sempre da 0 (Lunedì), calcola il giorno reale di oggi
+        giornoCorrente = calcolaGiornoAttuale();
+        mostraGiorno(giornoCorrente);
+    </script>
+</body>
+</html>
